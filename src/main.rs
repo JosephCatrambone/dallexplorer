@@ -53,6 +53,7 @@ async fn main() -> tide::Result<()> { //Result<(), std::io::Error>
 	})
 	*/
 	app.at("/").get(www::index);
+	app.at("/dbg").serve_file("src/index.html"); // This means we don't have to recompile to see changes, but won't embed the index.html.
 	app.at("/api/image:encode")
 		.post(api::encode_image);
 	app.listen("127.0.0.1:8080").await?;

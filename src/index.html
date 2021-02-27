@@ -6,7 +6,7 @@
 </head>
 <body>
 	<canvas></canvas>
-	<input type="file"/>
+	<input type="file" accept="image/png, image/jpeg">
 
 	<script type="application/javascript">
 		// Because JavaScript serializes [1, 2, 3, 4] as {"0": 1, "1": 2, "2": 3, "3": 4}, we need to call replacer.
@@ -15,7 +15,7 @@
 			return value;
 		}
 
-		async function postData(url = '', data = null, raw_json = null) {
+		async function postJSONData(url = '', data = null, raw_json = null) {
 			if(raw_json == null) {
 				raw_json = JSON.stringify(data)
 			}
@@ -61,12 +61,13 @@
 		function upload(evt) {
 			const fr = new FileReader();
 			fr.onload = function(evt){
-				postData(window.location.origin + "/api/image:encode", {"image":evt.target.result})
-					.then(data => {
-						console.log(data); // JSON data parsed by `data.json()` call
-					});
+				const url = window.location.origin + "/api/image:encode";
+				const xhr = new XMLHttpRequest;
+				xhr.open("POST", url, false);
+				xhr.send(evt.target.result);
 			};
-			fr.readAsBinaryString(this.files[0]);
+			//fr.readAsBinaryString(this.files[0]);
+			fr.readAsArrayBuffer(this.files[0]);
 		}
 
 		function main() {
