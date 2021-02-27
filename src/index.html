@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>ArtMixer</title>
+</head>
+<body>
+	<canvas></canvas>
+	<input type="file"/>
+
+	<script type="application/javascript">
+		// Because JavaScript serializes [1, 2, 3, 4] as {"0": 1, "1": 2, "2": 3, "3": 4}, we need to call replacer.
+		function replacer(key, value) {
+			//if (typeof value === 'string') { return undefined; }
+			return value;
+		}
+
+		async function postData(url = '', data = null, raw_json = null) {
+			if(raw_json == null) {
+				raw_json = JSON.stringify(data)
+			}
+			// Default options are marked with *
+			const response = await fetch(url, {
+				method: 'POST', // *GET, POST, PUT, DELETE, etc.
+				mode: 'cors', // no-cors, *cors, same-origin
+				cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+				credentials: 'same-origin', // include, *same-origin, omit
+				headers: {
+					'Content-Type': 'application/json'
+					// 'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				redirect: 'follow', // manual, *follow, error
+				referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+				body: raw_json // body data type must match "Content-Type" header
+			});
+			return response.json(); // parses JSON response into native JavaScript objects
+		}
+
+		function uploadImageArray(evt) {
+			const fr = new FileReader();
+			fr.onload = function(evt){
+				const img = new Image();
+				img.onload = function(evt) {
+					const canvas = document.querySelector("canvas");
+					canvas.width = img.width;
+					canvas.height = img.height;
+					const ctx = canvas.getContext("2d");
+					ctx.drawImage(img, 0, 0);
+					postData(window.location.origin + "/api/image:encode", null, JSON.stringify({"image":Array.from(ctx.getImageData(0, 0, canvas.width, canvas.height).data)}, replacer))
+						.then(data => {
+							console.log(data); // JSON data parsed by `data.json()` call
+						});
+				};
+				img.src = evt.target.result;
+				//const img = new ImageData(0, 0);
+				//img.src = evt.target.result;
+			};
+			fr.readAsDataURL(this.files[0]);
+		}
+
+		function upload(evt) {
+			const fr = new FileReader();
+			fr.onload = function(evt){
+				postData(window.location.origin + "/api/image:encode", {"image":evt.target.result})
+					.then(data => {
+						console.log(data); // JSON data parsed by `data.json()` call
+					});
+			};
+			fr.readAsBinaryString(this.files[0]);
+		}
+
+		function main() {
+			const fin = document.querySelector("input");
+			fin.addEventListener("change", upload, false);
+		}
+
+		main();
+	</script>
+</body>
+</html>
