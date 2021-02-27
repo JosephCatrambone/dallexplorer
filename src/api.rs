@@ -1,5 +1,4 @@
 use tide::prelude::*;
-use tch::nn::Module;
 
 use crate::{State, image_to_tensor, LATENT_SIZE};
 
@@ -23,12 +22,10 @@ pub async fn encode_image(mut req: tide::Request<State>) -> tide::Result {
 	let img = img.unwrap();
 
 	let state = req.state();
-	let t = image_to_tensor(&img);
-	let latent = state.encoder.forward(&t);
-	let mut repr:Vec<f64> = vec![];
-	for i in 0i64..LATENT_SIZE as i64 {
-		repr.push(latent.double_value(&[i]));
-	}
+	let repr = state.image_to_vec(&img);
 
-	Ok(format!("{:?}", &repr).into())
+	let response = format!("{:?}", &repr);
+	dbg!("{:?}", &response);
+
+	Ok(response.into())
 }
